@@ -7,6 +7,7 @@
 # Last Modified Date: 21.11.2021
 # Last Modified By  : vb <vbrinnel@physik.hu-berlin.de>
 
+import sys
 from signal import signal, SIGINT, SIGTERM, default_int_handler
 from typing import List, Any, Tuple, Sequence, Union, Optional
 from pymongo.errors import PyMongoError
@@ -73,6 +74,10 @@ class AlertConsumer(AbsEventUnit):
 	shout: int = LogFlag.SHOUT
 
 	updates_buffer_size: int = 500
+
+	#: Calls `sys.exit()` with `exit_if_no_alert` as return code in case
+	#: no alert was processed (iter_count == 0)
+	exit_if_no_alert: Union[None, int] = None
 
 
 	@classmethod
@@ -451,6 +456,9 @@ class AlertConsumer(AbsEventUnit):
 				# Try to insert doc into trouble collection (raises no exception)
 				# Possible exception will be logged out to console in any case
 				report_exception(self._ampel_db, logger, exc=e)
+
+		if self.exit_if_no_alert and iter_count == 0:
+			sys.exit(self.exit_if_no_alert)
 
 		# Return number of processed alerts
 		return iter_count
