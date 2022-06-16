@@ -430,6 +430,9 @@ class AlertConsumer(AbsEventUnit):
 			event_hdlr.add_extra(overwrite=True, success=False)
 			report_exception(self._ampel_db, logger, exc=e)
 
+			if self.raise_exc:
+				raise e
+
 		# Also executed after SIGINT and SIGTERM
 		finally:
 
@@ -456,6 +459,9 @@ class AlertConsumer(AbsEventUnit):
 				# Try to insert doc into trouble collection (raises no exception)
 				# Possible exception will be logged out to console in any case
 				report_exception(self._ampel_db, logger, exc=e)
+
+				if self.raise_exc:
+					raise e
 
 		if self.exit_if_no_alert and iter_count == 0:
 			sys.exit(self.exit_if_no_alert)
