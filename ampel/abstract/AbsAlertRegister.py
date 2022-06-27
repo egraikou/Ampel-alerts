@@ -4,7 +4,7 @@
 # License:             BSD-3-Clause
 # Author:              valery brinnel <firstname.lastname@gmail.com>
 # Date:                09.05.2020
-# Last Modified Date:  24.11.2021
+# Last Modified Date:  27.06.2022
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
 from ampel.base.AmpelABC import AmpelABC
@@ -20,11 +20,10 @@ class AbsAlertRegister(AmpelABC, AmpelRegister, ContextUnit, abstract=True):
 	"""
 
 	@abstractmethod
-	def file(self, alert: AmpelAlertProtocol, filter_res: None | int = None) -> None:
+	def file(self, alert: AmpelAlertProtocol, filter_res: int = 0) -> None:
 		"""
 		Record the result of the filter.
 
 		:param alert: the alert a filter was applied to
-		:param filter_res: result of the filter; ``None`` if the alert was rejected
+		:param filter_res: filter rejection code (negative)
 		"""
-		...
