@@ -9,7 +9,8 @@
 
 from time import time
 from struct import pack
-from typing import Literal, BinaryIO, ClassVar
+from typing import Literal, BinaryIO, ClassVar, Generator
+from ampel.util.register import reg_iter
 from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
 from ampel.alert.reject.BaseAlertRegister import BaseAlertRegister
 
@@ -23,12 +24,41 @@ class FullAlertRegister(BaseAlertRegister):
 	struct: Literal['<QQIB'] = '<QQIB' # type: ignore[assignment]
 
 
-	def file(self, alert: AmpelAlertProtocol, filter_res: None | int = None) -> None:
-		self._write(pack('<QQIB', alert.id, alert.stock, int(time()), filter_res or 0))
+	def file(self, alert: AmpelAlertProtocol, filter_res: int = 0) -> None:
+		self._write(pack('<QQIB', alert.id, alert.stock, int(time()), -filter_res))
+
+
+	@classmethod
+	def iter(cls,
+		f: BinaryIO | str,
+		multiplier: int = 100000,
+		verbose: bool = True,
+		native: bool = False,
+	) -> Generator[tuple[int, ...], None, None]:
+		"""
+		:param native: will not yield negative fitler results
+		as these are saved as unsigned int but should work slightly faster
+		"""
+		if native:
+			return reg_iter(f, multiplier, verbose) # type: ignore[return-value]
+
+		for el in reg_iter(f, multiplier, verbose):
+			yield el[0], el[1], el[2], -el[3]
+
+
+	@classmethod
+	def find_alert(cls, # type: ignore[override]
+		f: BinaryIO | str, alert_id: int | list[int], **kwargs
+	) -> None | list[tuple[int, ...]]:
+		if ret := super().find_alert(f, alert_id=alert_id, **kwargs):
+			return [(el[0], el[1], el[2], -el[3]) for el in ret]
+		return None
 
 
 	@classmethod
 	def find_stock(cls, # type: ignore[override]
 		f: BinaryIO | str, stock_id: int | list[int], **kwargs
 	) -> None | list[tuple[int, ...]]:
-		return super().find_stock(f, stock_id=stock_id, offset_in_block=8, **kwargs)
+		if ret := super().find_stock(f, stock_id=stock_id, offset_in_block=8, **kwargs):
+			return [(el[0], el[1], el[2], -el[3]) for el in ret]
+		return None

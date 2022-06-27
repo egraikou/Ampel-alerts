@@ -4,7 +4,7 @@
 # License:             BSD-3-Clause
 # Author:              valery brinnel <firstname.lastname@gmail.com>
 # Date:                12.05.2020
-# Last Modified Date:  24.11.2021
+# Last Modified Date:  27.06.2022
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
 from struct import pack
@@ -27,10 +27,10 @@ class MinimalActiveAlertRegister(MinimalAlertRegister):
 
 
 	# Override
-	def file(self, alert: AmpelAlertProtocol, filter_res: None | int = None) -> None:
+	def file(self, alert: AmpelAlertProtocol, filter_res: int = 0) -> None:
 		alid = alert.id
 		if alid > self.alert_max:
 			self.alert_max = alid
 		if alid < self.alert_min:
 			self.alert_min = alid
-		self._write(pack('<QB', alid, filter_res or 0))
+		self._write(pack('<QB', alid, -filter_res))
