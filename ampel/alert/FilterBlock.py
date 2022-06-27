@@ -4,7 +4,7 @@
 # License:             BSD-3-Clause
 # Author:              valery brinnel <firstname.lastname@gmail.com>
 # Date:                03.05.2018
-# Last Modified Date:  24.11.2021
+# Last Modified Date:  27.06.2022
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
 from logging import LogRecord
@@ -127,7 +127,7 @@ class FilterBlock:
 
 			self.rej_log_handle: None | Callable[[LightLogRecord | LogRecord], None] = None
 			self.rej_log_handler: None | LoggingHandlerProtocol = None
-			self.file: None | Callable[[AmpelAlertProtocol, None | int], None] = None
+			self.file: None | Callable[[AmpelAlertProtocol, int], None] = None
 			self.register: None | AbsAlertRegister = None
 		else:
 			self.filter_func = no_filter
@@ -143,10 +143,10 @@ class FilterBlock:
 				return self.bypass
 
 			# Apply filter (returns None/False in case of rejection or True/int in case of match)
-			res = self.filter_func(alert)
+			res = self.filter_func(alert) or 0
 
 			# Filter accepted alert
-			if res and res > 0:
+			if res > 0:
 
 				self._stat_accepted.inc()
 
@@ -159,7 +159,7 @@ class FilterBlock:
 				else:
 					extra = {'a': alert.id, 's': alert.stock}
 					if self.min_log_msg: # embed is True
-						self.log(INFO, self.min_log_msg if isinstance(res, bool) \
+						self.log(INFO, self.min_log_msg if res is True \
 							else {'c': self.channel, 'g': res}, extra=extra)
 					else:
 						extra['c'] = self.channel
