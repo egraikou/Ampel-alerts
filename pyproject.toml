@@ -36,7 +36,7 @@ ampel-core = {version = "^0.8.3-alpha.11"}
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
 pytest-cov = "^3.0.0"
-pytest-mock = "^3.7.0"
+pytest-mock = "^3.8.1"
 mongomock = "^4.0.0"
 mypy = "^0.930"
 
