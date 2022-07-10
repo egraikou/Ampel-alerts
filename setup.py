@@ -4,7 +4,7 @@
 # License:             BSD-3-Clause
 # Author:              valery brinnel <firstname.lastname@gmail.com>
 # Date:                Unspecified
-# Last Modified Date:  02.01.2022
+# Last Modified Date:  10.07.2022
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
 from setuptools import setup, find_namespace_packages
@@ -19,8 +19,8 @@ package_data = {
 
 setup(
     name = 'ampel-alerts',
-    version = '0.8.3.alpha-7',
-    description = 'Asynchronous and Modular Platform with Execution Layers',
+    version = '0.8.3.alpha-8',
+    description = 'Alice in Modular Provenance-Enabled Land',
     author = 'Valery Brinnel',
     maintainer = 'Jakob van Santen',
     maintainer_email = 'jakob.van.santen@desy.de',
