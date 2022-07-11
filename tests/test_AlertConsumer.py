@@ -261,7 +261,7 @@ def test_journal_extra(dev_context, single_source_directive):
                 ]
             },
         },
-        journal_extra={"fooey": "foo.bar.baz"}
+        include_alert_extra_with_keys={"fooey": "foo.bar.baz"}
     )
     assert ap.run() == 1, "AP successfully processes alert"
     jentry = dev_context.db.get_collection("stock").find_one()["journal"][0]

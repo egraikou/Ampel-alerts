@@ -81,7 +81,7 @@ class AlertConsumer(AbsEventUnit):
 
 	#: Fields from alert.extra to include in journal entries, of the form
 	#: journal_key: dotted.path.in.extra.dict
-	journal_extra: dict[str, str] = {}
+	include_alert_extra_with_keys: dict[str, str] = {}
 
 	@classmethod
 	def from_process(cls, context: AmpelContext, process_name: str, override: Optional[dict] = None):
@@ -359,14 +359,14 @@ class AlertConsumer(AbsEventUnit):
 					stats["accepted"].inc()
 
 					try:
-						journal_extra: dict[str, Any] = {'alert': alert.id}
-						if self.journal_extra and alert.extra:
-							for key, path in self.journal_extra.items():
-								journal_extra[key] = get_by_path(alert.extra, path)
+						alert_extra: dict[str, Any] = {'alert': alert.id}
+						if self.include_alert_extra_with_keys and alert.extra:
+							for key, path in self.include_alert_extra_with_keys.items():
+								alert_extra[key] = get_by_path(alert.extra, path)
 						with stat_time.labels("ingest").time():
 							ing_hdlr.ingest(
 								alert.datapoints, filter_results, stock_id, alert.tag,
-								journal_extra, alert.extra.get('stock') if alert.extra else None
+								alert_extra, alert.extra.get('stock') if alert.extra else None
 							)
 					except (PyMongoError, AmpelLoggingError) as e:
 						print("%s: abording run() procedure" % e.__class__.__name__)
