@@ -43,6 +43,7 @@ def collect_diff(store):
             delta[key] = sample.value - (before.get(key) or 0)
     store.update(delta)
 
+
 @pytest.fixture
 def single_source_directive(
     dev_context: DevAmpelContext, dummy_units
@@ -74,7 +75,11 @@ def test_no_filter(dev_context, single_source_directive):
             supplier={
                 "unit": "UnitTestAlertSupplier",
                 "config": {
-                    "alerts": [AmpelAlert(id="alert", stock="stockystock", datapoints=[{"id": 0}])]
+                    "alerts": [
+                        AmpelAlert(
+                            id="alert", stock="stockystock", datapoints=[{"id": 0}]
+                        )
+                    ]
                 },
             },
         )
@@ -136,7 +141,11 @@ def test_with_filter(dev_context, single_source_directive):
             supplier={
                 "unit": "UnitTestAlertSupplier",
                 "config": {
-                    "alerts": [AmpelAlert(id="alert", stock="stockystock", datapoints=[{"id": 0}])]
+                    "alerts": [
+                        AmpelAlert(
+                            id="alert", stock="stockystock", datapoints=[{"id": 0}]
+                        )
+                    ]
                 },
             },
         )
@@ -230,3 +239,32 @@ def test_suspend_in_critical_section(dev_context, single_source_directive, monke
     )
     assert ap.run() == 1, "AP successfully processes alert"
     assert ap._cancel_run == AlertConsumerError.SIGINT
+
+
+def test_journal_extra(dev_context, single_source_directive):
+    value = 42
+    ap = AlertConsumer(
+        context=dev_context,
+        process_name="ap",
+        shaper="NoShaper",
+        directives=[single_source_directive],
+        supplier={
+            "unit": "UnitTestAlertSupplier",
+            "config": {
+                "alerts": [
+                    AmpelAlert(
+                        id="alert",
+                        stock="stockystock",
+                        datapoints=[{"id": 0}],
+                        extra={"foo": {"bar": {"baz": value}}},
+                    )
+                ]
+            },
+        },
+        journal_extra={"fooey": "foo.bar.baz"}
+    )
+    assert ap.run() == 1, "AP successfully processes alert"
+    jentry = dev_context.db.get_collection("stock").find_one()["journal"][0]
+    assert jentry["alert"] == "alert"
+    assert jentry["fooey"] == value
+
