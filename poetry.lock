@@ -744,7 +744,7 @@ server = []
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<3.11"
-content-hash = "920d2a032c346a2c2124eabce7ea30cc264d5af55612b6da8b8672d3d664b3f6"
+content-hash = "fce533e261f25186f3ae14086139582946c884d4ba10dc87303e6731ca03d11a"
 
 [metadata.files]
 aiohttp = [
