@@ -39,7 +39,7 @@ python-versions = "*"
 
 [[package]]
 name = "ampel-core"
-version = "0.8.3a13"
+version = "0.8.3a14"
 description = "Asynchronous and Modular Platform with Execution Layers"
 category = "main"
 optional = false
@@ -47,6 +47,7 @@ python-versions = ">=3.10,<3.11"
 
 [package.dependencies]
 ampel-interface = ">=0.8.3-alpha.13,<0.9.0"
+appdirs = ">=1.4.4,<2.0.0"
 prometheus-client = ">=0.10,<0.12"
 psutil = ">=5.8.0,<6.0.0"
 pydantic = "1.9.0"
@@ -76,6 +77,14 @@ xxhash = ">=3.0.0,<4.0.0"
 
 [package.extras]
 docs = ["Sphinx (>=4.0.0,<5.0.0)", "sphinx-autodoc-typehints (>=1.11.1,<2.0.0)", "tomlkit (>=0.11.0,<0.12.0)"]
+
+[[package]]
+name = "appdirs"
+version = "1.4.4"
+description = "A small Python module for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
+category = "main"
+optional = false
+python-versions = "*"
 
 [[package]]
 name = "argcomplete"
@@ -744,7 +753,7 @@ server = []
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<3.11"
-content-hash = "1d7c50c7c42000fe1e2571a462513cd3b6eec5eecc13f474dc21557a0b4f1566"
+content-hash = "c514843d94b7c2aed1f4cd052aaa2199533e6e5ea90a574ef7ce2f7c1cf3ba1b"
 
 [metadata.files]
 aiohttp = [
@@ -830,12 +839,16 @@ alabaster = [
     {file = "alabaster-0.7.12.tar.gz", hash = "sha256:a661d72d58e6ea8a57f7a86e37d86716863ee5e92788398526d58b26a4e4dc02"},
 ]
 ampel-core = [
-    {file = "ampel-core-0.8.3a13.tar.gz", hash = "sha256:e66e648eee31237ad3997a5091ac28b21a713935e180826b229b6ad78d4d9111"},
-    {file = "ampel_core-0.8.3a13-py3-none-any.whl", hash = "sha256:85658a980d74b1ce68f783e56f6bc77d68f0eba444d3cecc87515e85499c6b4c"},
+    {file = "ampel-core-0.8.3a14.tar.gz", hash = "sha256:b44567ca11bd12a127fe70e4721155946c95905c0aacc749b37c0dcabbbe5ee1"},
+    {file = "ampel_core-0.8.3a14-py3-none-any.whl", hash = "sha256:e32541c354b7825a9cdf7f95a9841cea057e2d71b901de35770df850325fa09a"},
 ]
 ampel-interface = [
     {file = "ampel-interface-0.8.3a13.tar.gz", hash = "sha256:35a8454015c52e8d9a76ead438cb54bb065eb89da343bb34415eda2f85625d97"},
     {file = "ampel_interface-0.8.3a13-py3-none-any.whl", hash = "sha256:8c2cf8ae4a5931f3dad4c3c8062287c6b9b13889dd71e717c344fb66f6ca1594"},
+]
+appdirs = [
+    {file = "appdirs-1.4.4-py2.py3-none-any.whl", hash = "sha256:a841dacd6b99318a741b166adb07e19ee71a274450e68237b4650ca1055ab128"},
+    {file = "appdirs-1.4.4.tar.gz", hash = "sha256:7d5d0167b2b1ba821647616af46a749d1c653740dd0d2415100fe26e27afdf41"},
 ]
 argcomplete = [
     {file = "argcomplete-2.0.0-py2.py3-none-any.whl", hash = "sha256:cffa11ea77999bb0dd27bb25ff6dc142a6796142f68d45b1a26b11f58724561e"},
