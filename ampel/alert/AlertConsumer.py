@@ -4,7 +4,7 @@
 # License:             BSD-3-Clause
 # Author:              valery brinnel <firstname.lastname@gmail.com>
 # Date:                10.10.2017
-# Last Modified Date:  11.06.2022
+# Last Modified Date:  25.07.2022
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
 import sys
@@ -16,6 +16,7 @@ from pymongo.errors import PyMongoError
 from ampel.core.AmpelContext import AmpelContext
 from ampel.util.mappings import merge_dict
 from ampel.util.freeze import recursive_unfreeze
+from ampel.enum.EventCode import EventCode
 from ampel.model.UnitModel import UnitModel
 from ampel.core.EventHandler import EventHandler
 from ampel.dev.DevAmpelContext import DevAmpelContext
@@ -202,7 +203,7 @@ class AlertConsumer(AbsEventUnit):
 			processed_alerts = self.run()
 
 
-	def run(self) -> int:
+	def proceed(self, event_hdlr: EventHandler) -> int:
 		"""
 		Process alerts using internal alert_loader/alert_supplier
 
@@ -218,7 +219,8 @@ class AlertConsumer(AbsEventUnit):
 			"accepted": stat_accepted.labels("any")
 		}
 
-		run_id = self.context.new_run_id()
+		event_hdlr.set_tier(0)
+		run_id = event_hdlr.get_run_id()
 
 		# Setup logging
 		###############
@@ -236,12 +238,6 @@ class AlertConsumer(AbsEventUnit):
 		# DBLoggingHandler formats, saves and pushes log records into the DB
 		if db_logging_handler := logger.get_db_logging_handler():
 			db_logging_handler.auto_flush = False
-
-		# Add new doc in the 'events' collection
-		event_hdlr = EventHandler(
-			self.process_name, self.context.db, tier=0,
-			run_id=run_id, raise_exc=self.raise_exc
-		)
 
 		# Collects and executes pymongo.operations in collection Ampel_data
 		updates_buffer = DBUpdatesBuffer(
@@ -426,10 +422,7 @@ class AlertConsumer(AbsEventUnit):
 			pass
 
 		except Exception as e:
-			# Try to insert doc into trouble collection (raises no exception)
-			# Possible exception will be logged out to console in any case
-			event_hdlr.add_extra(overwrite=True, success=False)
-			report_exception(self._ampel_db, logger, exc=e)
+			event_hdlr.handle_error(e, logger)
 
 		# Also executed after SIGINT and SIGTERM
 		finally:
@@ -450,13 +443,8 @@ class AlertConsumer(AbsEventUnit):
 				# Flush registers and rejected log handlers
 				self._fbh.done()
 
-				event_hdlr.update(logger)
-
 			except Exception as e:
-
-				# Try to insert doc into trouble collection (raises no exception)
-				# Possible exception will be logged out to console in any case
-				report_exception(self._ampel_db, logger, exc=e)
+				event_hdlr.handle_error(e, logger)
 
 		if self.exit_if_no_alert and iter_count == 0:
 			sys.exit(self.exit_if_no_alert)
@@ -474,7 +462,7 @@ class AlertConsumer(AbsEventUnit):
 		:param extra: optional extra key/value fields to add to 'trouble' doc
 		"""
 
-		event_hdlr.add_extra(overwrite=True, success=False)
+		event_hdlr.set_code(EventCode.EXCEPTION)
 		info: Any = {'process': self.process_name, 'run': run_id}
 
 		if extra:
