@@ -1,20 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : Ampel-alerts/ampel/alert/AlertConsumer.py
-# License           : BSD-3-Clause
-# Author            : vb <vbrinnel@physik.hu-berlin.de>
-# Date              : 10.10.2017
-# Last Modified Date: 21.11.2021
-# Last Modified By  : vb <vbrinnel@physik.hu-berlin.de>
+# File:                Ampel-alerts/ampel/alert/AlertConsumer.py
+# License:             BSD-3-Clause
+# Author:              valery brinnel <firstname.lastname@gmail.com>
+# Date:                10.10.2017
+# Last Modified Date:  25.07.2022
+# Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
 import sys
 from signal import signal, SIGINT, SIGTERM, default_int_handler
-from typing import List, Any, Tuple, Sequence, Union, Optional
+from typing import Any
+from collections.abc import Sequence
 from pymongo.errors import PyMongoError
 
 from ampel.core.AmpelContext import AmpelContext
 from ampel.util.mappings import get_by_path, merge_dict
 from ampel.util.freeze import recursive_unfreeze
+from ampel.enum.EventCode import EventCode
 from ampel.model.UnitModel import UnitModel
 from ampel.core.EventHandler import EventHandler
 from ampel.dev.DevAmpelContext import DevAmpelContext
@@ -58,7 +60,7 @@ class AlertConsumer(AbsEventUnit):
 	#: Mandatory alert processor directives. This parameter will
 	#: determines how the underlying :class:`~ampel.alert.FilterBlocksHandler.FilterBlocksHandler`
 	#: and :class:`~ampel.alert.ChainedIngestionHandler.ChainedIngestionHandler` instances are set up.
-	directives: Sequence[Union[IngestDirective, DualIngestDirective]]
+	directives: Sequence[IngestDirective | DualIngestDirective]
 
 	#: How to store log record in the database (see :class:`~ampel.alert.FilterBlocksHandler.FilterBlocksHandler`)
 	db_log_format: str = "standard"
@@ -66,7 +68,7 @@ class AlertConsumer(AbsEventUnit):
 	#: Unit to use to supply alerts (str is just a shortcut for a configless UnitModel(unit=str))
 	supplier: UnitModel
 
-	compiler_opts: Optional[CompilerOptions]
+	compiler_opts: None | CompilerOptions
 
 	database: str = "mongo"
 
@@ -77,14 +79,14 @@ class AlertConsumer(AbsEventUnit):
 
 	#: Calls `sys.exit()` with `exit_if_no_alert` as return code in case
 	#: no alert was processed (iter_count == 0)
-	exit_if_no_alert: Union[None, int] = None
+	exit_if_no_alert: None | int = None
 
 	#: Fields from alert.extra to include in journal entries, of the form
 	#: journal_key: dotted.path.in.extra.dict
 	include_alert_extra_with_keys: dict[str, str] = {}
 
 	@classmethod
-	def from_process(cls, context: AmpelContext, process_name: str, override: Optional[dict] = None):
+	def from_process(cls, context: AmpelContext, process_name: str, override: None | dict = None):
 		"""
 		Convenience method instantiating an AlertConsumer using the config entry from a given T0 process.
 		
@@ -167,7 +169,7 @@ class AlertConsumer(AbsEventUnit):
 		)
 
 		#signal(SIGTERM, self.register_sigterm)
-		signal(SIGTERM, default_int_handler)
+		signal(SIGTERM, default_int_handler) # type: ignore[arg-type]
 		logger.info("AlertConsumer setup completed")
 
 
@@ -204,7 +206,7 @@ class AlertConsumer(AbsEventUnit):
 			processed_alerts = self.run()
 
 
-	def run(self) -> int:
+	def proceed(self, event_hdlr: EventHandler) -> int:
 		"""
 		Process alerts using internal alert_loader/alert_supplier
 
@@ -220,7 +222,8 @@ class AlertConsumer(AbsEventUnit):
 			"accepted": stat_accepted.labels("any")
 		}
 
-		run_id = self.context.new_run_id()
+		event_hdlr.set_tier(0)
+		run_id = event_hdlr.get_run_id()
 
 		# Setup logging
 		###############
@@ -238,12 +241,6 @@ class AlertConsumer(AbsEventUnit):
 		# DBLoggingHandler formats, saves and pushes log records into the DB
 		if db_logging_handler := logger.get_db_logging_handler():
 			db_logging_handler.auto_flush = False
-
-		# Add new doc in the 'events' collection
-		event_hdlr = EventHandler(
-			self.process_name, self.context.db, tier=0,
-			run_id=run_id, raise_exc=self.raise_exc
-		)
 
 		# Collects and executes pymongo.operations in collection Ampel_data
 		updates_buffer = DBUpdatesBuffer(
@@ -279,12 +276,12 @@ class AlertConsumer(AbsEventUnit):
 		err = 0
 
 		assert self._fbh.chan_names is not None
-		reduced_chan_names: Union[str, List[str]] = self._fbh.chan_names[0] \
+		reduced_chan_names: str | list[str] = self._fbh.chan_names[0] \
 			if len(self._fbh.chan_names) == 1 else self._fbh.chan_names
 		fblocks = self._fbh.filter_blocks
 
 		if any_filter:
-			filter_results: List[Tuple[int, Union[bool, int]]] = []
+			filter_results: list[tuple[int, bool | int]] = []
 		else:
 			filter_results = [(i, True) for i, fb in enumerate(fblocks)]
 
@@ -432,10 +429,7 @@ class AlertConsumer(AbsEventUnit):
 			pass
 
 		except Exception as e:
-			# Try to insert doc into trouble collection (raises no exception)
-			# Possible exception will be logged out to console in any case
-			event_hdlr.add_extra(overwrite=True, success=False)
-			report_exception(self._ampel_db, logger, exc=e)
+			event_hdlr.handle_error(e, logger)
 
 			if self.raise_exc:
 				raise e
@@ -459,14 +453,8 @@ class AlertConsumer(AbsEventUnit):
 				# Flush registers and rejected log handlers
 				self._fbh.done()
 
-				event_hdlr.update(logger)
-
 			except Exception as e:
-
-				# Try to insert doc into trouble collection (raises no exception)
-				# Possible exception will be logged out to console in any case
-				report_exception(self._ampel_db, logger, exc=e)
-
+				event_hdlr.handle_error(e, logger)
 				if self.raise_exc:
 					raise e
 
@@ -478,15 +466,15 @@ class AlertConsumer(AbsEventUnit):
 
 
 	def _report_ap_error(self,
-		arg_e: Exception, event_hdlr, logger: AmpelLogger, run_id: Union[int, List[int]],
-		filter_results: Optional[List[Tuple[int, Union[bool, int]]]] = None,
-		extra: Optional[dict[str, Any]] = None
+		arg_e: Exception, event_hdlr, logger: AmpelLogger, run_id: int | list[int],
+		filter_results: None | list[tuple[int, bool | int]] = None,
+		extra: None | dict[str, Any] = None
 	) -> None:
 		"""
 		:param extra: optional extra key/value fields to add to 'trouble' doc
 		"""
 
-		event_hdlr.add_extra(overwrite=True, success=False)
+		event_hdlr.set_code(EventCode.EXCEPTION)
 		info: Any = {'process': self.process_name, 'run': run_id}
 
 		if extra:

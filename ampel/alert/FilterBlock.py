@@ -1,14 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : Ampel-alerts/ampel/alert/FilterBlock.py
-# License           : BSD-3-Clause
-# Author            : vb <vbrinnel@physik.hu-berlin.de>
-# Date              : 03.05.2018
-# Last Modified Date: 24.11.2021
-# Last Modified By  : vb <vbrinnel@physik.hu-berlin.de>
+# File:                Ampel-alerts/ampel/alert/FilterBlock.py
+# License:             BSD-3-Clause
+# Author:              valery brinnel <firstname.lastname@gmail.com>
+# Date:                03.05.2018
+# Last Modified Date:  27.06.2022
+# Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
 from logging import LogRecord
-from typing import Any, Union, Optional, Callable, Tuple, cast
+from typing import Any, cast
+from collections.abc import Callable
 from ampel.types import ChannelId, StockId
 from ampel.core.AmpelContext import AmpelContext
 from ampel.model.ingest.FilterModel import FilterModel
@@ -46,7 +47,7 @@ class FilterBlock:
 		index: int,
 		context: AmpelContext,
 		channel: ChannelId,
-		filter_model: Optional[FilterModel],
+		filter_model: None | FilterModel,
 		process_name: str,
 		logger: AmpelLogger,
 		check_new: bool = False,
@@ -90,7 +91,7 @@ class FilterBlock:
 			# Instantiate/get filter class associated with this channel
 			logger.info(f"Loading filter: {filter_model.unit}", extra={'c': self.channel})
 
-			self.buf_hdlr: Union[EnclosedChanRecordBufHandler, ChanRecordBufHandler] = \
+			self.buf_hdlr: EnclosedChanRecordBufHandler | ChanRecordBufHandler = \
 				EnclosedChanRecordBufHandler(logger.level, self.channel) if embed \
 				else ChanRecordBufHandler(logger.level, self.channel)
 
@@ -124,17 +125,17 @@ class FilterBlock:
 				self.bypass = self.idx, False
 				self.update_rej = True
 
-			self.rej_log_handle: Optional[Callable[[Union[LightLogRecord, LogRecord]], None]] = None
-			self.rej_log_handler: Optional[LoggingHandlerProtocol] = None
-			self.file: Optional[Callable[[AmpelAlertProtocol, Optional[int]], None]] = None
-			self.register: Optional[AbsAlertRegister] = None
+			self.rej_log_handle: None | Callable[[LightLogRecord | LogRecord], None] = None
+			self.rej_log_handler: None | LoggingHandlerProtocol = None
+			self.file: None | Callable[[AmpelAlertProtocol, int], None] = None
+			self.register: None | AbsAlertRegister = None
 		else:
 			self.filter_func = no_filter
 			self.bypass = self.idx, False
 			self.overrule = self.idx, False
 
 
-	def filter(self, alert: AmpelAlertProtocol) -> Tuple[int, Union[int, bool, None]]:
+	def filter(self, alert: AmpelAlertProtocol) -> tuple[int, int | bool | None]:
 
 		with self._stat_time.time():
 
@@ -142,10 +143,10 @@ class FilterBlock:
 				return self.bypass
 
 			# Apply filter (returns None/False in case of rejection or True/int in case of match)
-			res = self.filter_func(alert)
+			res = self.filter_func(alert) or 0
 
 			# Filter accepted alert
-			if res and res > 0:
+			if res > 0:
 
 				self._stat_accepted.inc()
 
@@ -158,7 +159,7 @@ class FilterBlock:
 				else:
 					extra = {'a': alert.id, 's': alert.stock}
 					if self.min_log_msg: # embed is True
-						self.log(INFO, self.min_log_msg if isinstance(res, bool) \
+						self.log(INFO, self.min_log_msg if res is True \
 							else {'c': self.channel, 'g': res}, extra=extra)
 					else:
 						extra['c'] = self.channel

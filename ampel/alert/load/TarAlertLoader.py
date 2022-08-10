@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : Ampel-alerts/ampel/alert/load/TarAlertLoader.py
-# License           : BSD-3-Clause
-# Author            : vb <vbrinnel@physik.hu-berlin.de>
-# Date              : 13.05.2018
-# Last Modified Date: 15.03.2021
-# Last Modified By  : vb <vbrinnel@physik.hu-berlin.de>
+# File:                Ampel-alerts/ampel/alert/load/TarAlertLoader.py
+# License:             BSD-3-Clause
+# Author:              valery brinnel <firstname.lastname@gmail.com>
+# Date:                13.05.2018
+# Last Modified Date:  10.03.2022
+# Last Modified By:    Marcus Fenner <mf@physik.hu-berlin.de>
 
 import tarfile
-from typing import Optional, IO, Union, cast
 from gzip import GzipFile
+from typing import IO
 from ampel.log.AmpelLogger import AmpelLogger
 from ampel.types import Traceless
 from ampel.abstract.AbsAlertLoader import AbsAlertLoader
@@ -24,8 +24,8 @@ class TarAlertLoader(AbsAlertLoader[IO[bytes]]):
 
 	tar_mode: str = 'r:gz'
 	start: int = 0
-	file_obj: Optional[Union[IO[bytes], tarfile.ExFileObject]]
-	file_path: Optional[str]
+	file_obj: None | IO[bytes] | tarfile.ExFileObject
+	file_path: None | str
 	logger: Traceless[AmpelLogger] # actually optional
 
 
@@ -36,7 +36,7 @@ class TarAlertLoader(AbsAlertLoader[IO[bytes]]):
 
 		super().__init__(**kwargs)
 
-		self.chained_tal: Optional['TarAlertLoader'] = None
+		self.chained_tal: 'None | TarAlertLoader' = None
 
 		if self.file_obj:
 			self.tar_file = tarfile.open(fileobj=self.file_obj, mode=self.tar_mode)
@@ -105,13 +105,13 @@ class TarAlertLoader(AbsAlertLoader[IO[bytes]]):
 				else:
 					return next(self)
 			elif tar_info.name.endswith('.gz'):
-				return cast(IO[bytes], GzipFile(mode="rb", fileobj=file_obj))
+				return GzipFile(mode="rb", fileobj=file_obj) # type: ignore[return-value]
 			return file_obj
 
 		return next(self)
 
 
-	def get_chained_next(self) -> Optional[IO[bytes]]:
+	def get_chained_next(self) -> None | IO[bytes]:
 		assert self.chained_tal is not None
 		file_obj = next(self.chained_tal, None)
 		if file_obj is None:

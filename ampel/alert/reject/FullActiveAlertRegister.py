@@ -1,15 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : Ampel-alerts/ampel/alert/reject/FullActiveAlertRegister.py
-# License           : BSD-3-Clause
-# Author            : vb <vbrinnel@physik.hu-berlin.de>
-# Date              : 14.05.2020
-# Last Modified Date: 24.11.2021
-# Last Modified By  : vb <vbrinnel@physik.hu-berlin.de>
+# File:                Ampel-alerts/ampel/alert/reject/FullActiveAlertRegister.py
+# License:             BSD-3-Clause
+# Author:              valery brinnel <firstname.lastname@gmail.com>
+# Date:                14.05.2020
+# Last Modified Date:  27.06.2022
+# Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
 from time import time
 from struct import pack
-from typing import Optional, ClassVar, Tuple, Sequence
+from typing import ClassVar
+from collections.abc import Sequence
 from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
 from ampel.alert.reject.FullAlertRegister import FullAlertRegister
 
@@ -17,8 +18,11 @@ from ampel.alert.reject.FullAlertRegister import FullAlertRegister
 class FullActiveAlertRegister(FullAlertRegister):
 	""" Logs: alert_id, stock_id, timestamp, filter_res """
 
-	__slots__: ClassVar[Tuple[str, ...]] = '_write', 'alert_max', 'alert_min', 'stock_max', 'stock_min' # type: ignore
-	_slot_defaults = {'alert_max': 0, 'alert_min': 2**64, 'stock_max': 0, 'stock_min': 2**64}
+	__slots__: ClassVar[tuple[str, ...]] = '_write', 'alert_max', 'alert_min', 'stock_max', 'stock_min' # type: ignore
+	_slot_defaults = {
+		'alert_max': 0, 'alert_min': 2**64,
+		'stock_max': 0, 'stock_min': 2**64
+	}
 
 	header_hints: ClassVar[Sequence[str]] = ('alert', 'stock') # type: ignore
 	alert_min: int
@@ -27,7 +31,7 @@ class FullActiveAlertRegister(FullAlertRegister):
 	stock_max: int
 
 
-	def file(self, alert: AmpelAlertProtocol, filter_res: Optional[int] = None) -> None:
+	def file(self, alert: AmpelAlertProtocol, filter_res: int = 0) -> None:
 
 		alid = alert.id
 		if alid > self.alert_max:
@@ -41,4 +45,4 @@ class FullActiveAlertRegister(FullAlertRegister):
 		if sid < self.stock_min: # type: ignore[operator]
 			self.stock_min = sid # type: ignore[assignment]
 
-		self._write(pack('<QQIB', alid, sid, int(time()), filter_res or 0))
+		self._write(pack('<QQIB', alid, sid, int(time()), -filter_res))

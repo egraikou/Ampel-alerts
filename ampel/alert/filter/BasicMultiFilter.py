@@ -1,25 +1,26 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : Ampel-alerts/ampel/alert/filter/BasicMultiFilter.py
-# License           : BSD-3-Clause
-# Author            : vb <vbrinnel@physik.hu-berlin.de>
-# Date              : 14.01.2017
-# Last Modified Date: 24.11.2021
-# Last Modified By  : Jakob van Santen <jakob.van.santen@desy.de>
+# File:                Ampel-alerts/ampel/alert/filter/BasicMultiFilter.py
+# License:             BSD-3-Clause
+# Author:              valery brinnel <firstname.lastname@gmail.com>
+# Date:                14.01.2017
+# Last Modified Date:  24.11.2021
+# Last Modified By:    Jakob van Santen <jakob.van.santen@desy.de>
 
 import operator
 from ampel.abstract.AbsAlertFilter import AbsAlertFilter
 from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
 
-from ampel.model.StrictModel import StrictModel
-from typing import Literal, Sequence, Union, Callable, Dict
-from pydantic import Field, validator
+from ampel.base.AmpelBaseModel import AmpelBaseModel
+from typing import Literal, ClassVar
+from collections.abc import Callable, Sequence
 
-class PhotoAlertQuery(StrictModel):
+
+class PhotoAlertQuery(AmpelBaseModel):
 	"""
 	A filter condition suitable for use with AmpelAlert.get_values()
 	"""
-	_ops: Dict[str, Callable] = {
+	_ops: ClassVar[dict[str, Callable]] = {
 		'>': operator.gt,
 		'<': operator.lt,
 		'>=': operator.ge,
@@ -29,33 +30,32 @@ class PhotoAlertQuery(StrictModel):
 		'AND': operator.and_,
 		'OR': operator.or_
 	}
-	attribute: str = Field(..., description="Name of a light curve field")
-	operator: str = Field(..., description="Comparison operator")
-	value: float = Field(..., description="Value to compare to")
 
-	@validator('operator')
-	def valid_operator(cls, v):
-		if v not in cls._ops:
-			raise ValueError(f"Unknown operator '{v}'")
-		return v
+	#: Name of a light curve field
+	attribute: str
+
+	#: Comparison operator
+	operator: Literal['>', '<', '>=', '<=', '==', '!=', 'AND', 'OR']
+
+	#: Value to compare to
+	value: float
 
 
-class BasicFilterCondition(StrictModel):
-	criteria: Union[Sequence[PhotoAlertQuery], PhotoAlertQuery]
-	len: int = Field(..., ge=0)
-	operator: str
+
+class BasicFilterCondition(AmpelBaseModel):
+
+	criteria: PhotoAlertQuery | Sequence[PhotoAlertQuery]
+	len: int
+	operator: Literal['>', '<', '>=', '<=', '==', '!=', 'AND', 'OR']
 	logicalConnection: Literal['AND', 'OR'] = 'AND'
 	
-	@validator('operator', 'logicalConnection')
-	def valid_operator(cls, v):
-		return PhotoAlertQuery._ops[v]
+	def __init__(self, **kwargs):
+		super().__init__(**kwargs)
+		if self.len < 0:
+			raise ValueError("Len must be >= 0")
+		self._operator = PhotoAlertQuery._ops[self.operator]
+		self._criteria = [el.dict() for el in ([self.criteria] if isinstance(self.criteria, PhotoAlertQuery) else self.criteria)]
 
-	@validator('criteria')
-	def to_dicts(cls, v):
-		"Cast back to dict for use with PhotoAlert.get_values()"
-		if isinstance(v, PhotoAlertQuery):
-			v = [v]
-		return [q.dict() for q in v]
 
 
 class BasicMultiFilter(AbsAlertFilter):
@@ -112,12 +112,9 @@ class BasicMultiFilter(AbsAlertFilter):
 		for param in self.filters:
 
 			filter_res.append(
-				param.operator( # type: ignore[operator]
+				param._operator(
 					len(
-						alert.get_values(
-							'candid',
-							filters = param.criteria # type: ignore[arg-type]
-						)
+						alert.get_values('candid', filters = param._criteria)
 					),
 					param.len
 				)

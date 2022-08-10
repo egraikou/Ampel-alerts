@@ -5,14 +5,15 @@
 
 <br><br>
 
-This add-on enables the processing of `alerts` by AMPEL.
-The central class of this repository, `ampel.alert.AlertConsumer`,
-is capable of `loading`, `filtering`, `ingesting` these alerts.
+Enables the processing of _alerts_ by AMPEL.
 
-- The loading part involves system (or instrument) specific classes.
+The central class of this repository, `ampel.alert.AlertConsumer`,
+is capable of loading, filtering and "ingesting" these alerts.
+
+- The loading part involves instrument specific classes.
 - The optional filtering part allows the selection of events based on pre-defined rules. 
 High-throughput systems, such as ZTF or LSST in astronomy, rely on such filters.
-- The `ingestion` is the step where the content of alerts is saved into the AMPEL database, possibly along with different other documents which can be created according to pre-defined directives.
+- During _ingestion_, the content of alerts is saved into the AMPEL database, possibly together with other different documents which can be created according to pre-defined directives.
 
 <p align="center">
   <img src="https://desycloud.desy.de/index.php/s/fiLRCFZtbTkeCtj/preview" width="40%" />
@@ -39,7 +40,7 @@ Actions break-down:
 
 ## Filtering Alert 
 
-Filtering alerts is performed per channel by subclasses of `ampel.abstract.AbsAlertFilter`.
+Alerts filtering is performed per channel, by subclasses of `ampel.abstract.AbsAlertFilter`.
 An `AlertConsumer` instance can handle multiple filters.
 Alert filters methods provided by user units are called by the class `FilterBlock`,
 that handles associated operations (what happens to rejected alerts ? what about auto-complete, etc...) 

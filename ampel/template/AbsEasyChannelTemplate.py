@@ -1,17 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : Ampel-alerts/ampel/template/AbsEasyChannelTemplate.py
-# License           : BSD-3-Clause
-# Author            : vb <vbrinnel@physik.hu-berlin.de>
-# Date              : 16.10.2019
-# Last Modified Date: 16.07.2021
-# Last Modified By  : vb <vbrinnel@physik.hu-berlin.de>
+# File:                Ampel-alerts/ampel/template/AbsEasyChannelTemplate.py
+# License:             BSD-3-Clause
+# Author:              valery brinnel <firstname.lastname@gmail.com>
+# Date:                16.10.2019
+# Last Modified Date:  16.07.2021
+# Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
 import ujson
-from pydantic import validator
-from typing import List, Dict, Any, Union, Optional
+from typing import Any
 from ampel.types import ChannelId
 from ampel.log.AmpelLogger import AmpelLogger
+from ampel.model.ChannelModel import ChannelModel
 from ampel.model.ingest.T2Compute import T2Compute
 from ampel.model.ingest.FilterModel import FilterModel
 from ampel.config.builder.FirstPassConfig import FirstPassConfig
@@ -28,34 +28,40 @@ class AbsEasyChannelTemplate(AbsChannelTemplate, abstract=True):
 	Known subclass: :class:`~ampel.model.ZTFLegacyChannelTemplate.ZTFLegacyChannelTemplate`
 	"""
 	#: Filter to apply to incoming datapoints
-	t0_filter: FilterModel
+	t0_filter: None | FilterModel = None
 
 	#: T2 units to trigger when transient is updated. Dependencies of tied
 	#: units will be added automatically.
-	t2_compute: List[T2Compute] = []
+	t2_compute: list[T2Compute] = []
 
 	#: T3 processes bound to this channel. These may be use templates, such as
 	#: :class:`~ampel.model.template.PeriodicSummaryT3.PeriodicSummaryT3`.
-	t3_supervise: List[Dict[str, Any]] = []
+	t3_supervise: list[dict[str, Any]] = []
 
 	retro_complete: bool = False
 
-	def __init__(self, **kwargs):
-		# cast to sequence if needed
-		for k in ('t3_supervise', 't2_compute'):
-			if isinstance(v := kwargs.get(k), dict):
-				kwargs[k] = [v]
+
+	def __init__(self, **kwargs) -> None:
+		for el in ('t3_supervise', 't2_compute'):
+			if isinstance(x := kwargs.get(el), dict):
+				kwargs[el] = [x]
 		super().__init__(**kwargs)
 
+
+	# Mandatory implementation
+	def get_channel(self, logger: AmpelLogger) -> dict[str, Any]:
+		return self.dict(include=ChannelModel.get_model_keys())
+
+
 	def craft_t0_process(self,
-		config: Union[FirstPassConfig, Dict[str, Any]],
-		controller: Union[str, Dict[str, Any]],
-		supplier: Union[str, Dict[str, Any]],
-		shaper: Union[str, Dict[str, Any]],
-		combiner: Union[str, Dict[str, Any]],
-		muxer: Optional[Union[str, Dict[str, Any]]] = None,
-		compiler_opts: Optional[Dict[str, Any]] = None
-	) -> Dict[str, Any]:
+		config: FirstPassConfig | dict[str, Any],
+		controller: str | dict[str, Any],
+		supplier: str | dict[str, Any],
+		shaper: str | dict[str, Any],
+		combiner: str | dict[str, Any],
+		muxer: None | str | dict[str, Any] = None,
+		compiler_opts: None | dict[str, Any] = None
+	) -> dict[str, Any]:
 		"""
 		This method needs a reference to a FirstPassConfig dict because
 		config information might be needed during the template transforming process.
@@ -70,7 +76,7 @@ class AbsEasyChannelTemplate(AbsChannelTemplate, abstract=True):
 		:param state_t2: units to schedule on t1_combine
 		"""
 
-		ret: Dict[str, Any] = {
+		ret: dict[str, Any] = {
 			"tier": 0,
 			"schedule": ["super"],
 			"active": self.active,
@@ -83,7 +89,7 @@ class AbsEasyChannelTemplate(AbsChannelTemplate, abstract=True):
 				"unit": "AlertConsumer",
 				"config": self.craft_t0_processor_config(
 					self.channel, config, self.t2_compute, supplier, shaper, combiner,
-					self.t0_filter.dict(exclude_unset=True, by_alias=True), muxer, compiler_opts
+					self.t0_filter.dict(exclude_unset=True) if self.t0_filter else None, muxer, compiler_opts
 				)
 			}
 		}
@@ -94,15 +100,15 @@ class AbsEasyChannelTemplate(AbsChannelTemplate, abstract=True):
 	@classmethod
 	def craft_t0_processor_config(cls,
 		channel: ChannelId,
-		config: Union[FirstPassConfig, Dict[str, Any]],
-		t2_compute: List[T2Compute],
-		supplier: Union[str, Dict[str, Any]],
-		shaper: Union[str, Dict[str, Any]],
-		combiner: Union[str, Dict[str, Any]],
-		filter_dict: Optional[Dict[str, Any]] = None,
-		muxer: Optional[Union[str, Dict[str, Any]]] = None,
-		compiler_opts: Optional[Dict[str, Any]] = None
-	) -> Dict[str, Any]:
+		config: FirstPassConfig | dict[str, Any],
+		t2_compute: list[T2Compute],
+		supplier: str | dict[str, Any],
+		shaper: str | dict[str, Any],
+		combiner: str | dict[str, Any],
+		filter_dict: None | dict[str, Any] = None,
+		muxer: None | str | dict[str, Any] = None,
+		compiler_opts: None | dict[str, Any] = None
+	) -> dict[str, Any]:
 		"""
 		This method needs a reference to a FirstPassConfig dict because
 		config information might be needed during the template transforming process.
@@ -131,7 +137,7 @@ class AbsEasyChannelTemplate(AbsChannelTemplate, abstract=True):
 		point_t2s = filter_units(t2_compute, "AbsPointT2Unit", config)
 		check_tied_units(t2_compute, config)
 
-		ingest: Dict[str, Any] = {}
+		ingest: dict[str, Any] = {}
 
 		# See IngestDirective docstring
 		if stock_t2s:
@@ -142,17 +148,17 @@ class AbsEasyChannelTemplate(AbsChannelTemplate, abstract=True):
 		if muxer:
 			ingest['mux'] = ujson.loads(ujson.dumps(resolve_shortcut(muxer)))
 			if state_t2s:
-				ingest['mux']['combine'] = [{'unit': combiner, 'state_t2': state_t2s}]
+				ingest['mux']['combine'] = [resolve_shortcut(combiner) | {'state_t2': state_t2s}]
 			if point_t2s:
 				ingest['mux']['insert'] = {"point_t2": point_t2s}
 		else:
 			if state_t2s:
-				ingest['combine'] = [{'unit': combiner, 'state_t2': state_t2s}]
+				ingest['combine'] = [resolve_shortcut(combiner) | {'state_t2': state_t2s}]
 			if point_t2s:
 				if 'combine' in ingest:
 					ingest['combine'][0]['point_t2'] = point_t2s
 				else:
-					ingest['combine'] = [{'unit': combiner, 'point_t2': point_t2s}]
+					ingest['combine'] = [resolve_shortcut(combiner) | {'point_t2': point_t2s}]
 
 		return {
 			"supplier": resolve_shortcut(supplier),

@@ -1,15 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : Ampel-alerts/ampel/alert/BaseAlertSupplier.py
-# License           : BSD-3-Clause
-# Author            : vb <vbrinnel@physik.hu-berlin.de>
-# Date              : 29.07.2021
-# Last Modified Date: 24.11.2021
-# Last Modified By  : vb <vbrinnel@physik.hu-berlin.de>
+# File:                Ampel-alerts/ampel/alert/BaseAlertSupplier.py
+# License:             BSD-3-Clause
+# Author:              valery brinnel <firstname.lastname@gmail.com>
+# Date:                29.07.2021
+# Last Modified Date:  24.11.2021
+# Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
 import json
 from io import IOBase
-from typing import Any, Dict, Callable, Literal, Optional, Iterator
+from typing import Any, Literal
+from collections.abc import Callable, Iterator
 from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
 from ampel.abstract.AbsAlertSupplier import AbsAlertSupplier
 from ampel.log.AmpelLogger import AmpelLogger
@@ -19,7 +20,7 @@ from ampel.abstract.AbsAlertLoader import AbsAlertLoader
 from ampel.model.UnitModel import UnitModel
 
 
-def identity(arg: Dict) -> Dict:
+def identity(arg: dict) -> dict:
 	"""
 	Covers the "no deserialization needed" case which might occur
 	if the underlying alert loader directly returns dicts
@@ -42,7 +43,7 @@ class BaseAlertSupplier(AbsAlertSupplier, abstract=True):
 	loader: UnitModel
 
 	# Underlying serialization
-	deserialize: Optional[Literal["avro", "json", "csv"]]
+	deserialize: None | Literal["avro", "json", "csv"]
 
 
 	def __init__(self, **kwargs) -> None:
@@ -58,7 +59,7 @@ class BaseAlertSupplier(AbsAlertSupplier, abstract=True):
 		)
 
 		if self.deserialize is None:
-			self._deserialize: Callable[[Any], Dict] = identity
+			self._deserialize: Callable[[Any], dict] = identity
 
 		elif self.deserialize == "json":
 			self._deserialize = json.load

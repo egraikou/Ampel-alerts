@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : Ampel-alerts/ampel/alert/load/DirFileNamesLoader.py
-# License           : BSD-3-Clause
-# Author            : vb <vbrinnel@physik.hu-berlin.de>
-# Date              : 25.10.2021
-# Last Modified Date: 25.10.2021
-# Last Modified By  : vb <vbrinnel@physik.hu-berlin.de>
+# File:                Ampel-alerts/ampel/alert/load/DirFileNamesLoader.py
+# License:             BSD-3-Clause
+# Author:              valery brinnel <firstname.lastname@gmail.com>
+# Date:                25.10.2021
+# Last Modified Date:  25.10.2021
+# Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
 import glob, os
-from typing import Optional
 from ampel.abstract.AbsAlertLoader import AbsAlertLoader
 
 
@@ -22,7 +21,7 @@ class DirFileNamesLoader(AbsAlertLoader[str]):
 
 	folder: str
 	extension: str
-	max_entries: Optional[int] = None
+	max_entries: None | int = None
 
 	def __init__(self, **kwargs) -> None:
 

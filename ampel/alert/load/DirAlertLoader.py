@@ -1,31 +1,30 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : Ampel-alerts/ampel/alert/load/DirAlertLoader.py
-# License           : BSD-3-Clause
-# Author            : vb <vbrinnel@physik.hu-berlin.de>
-# Date              : 14.12.2017
-# Last Modified Date: 27.07.2021
-# Last Modified By  : vb <vbrinnel@physik.hu-berlin.de>
+# File:                Ampel-alerts/ampel/alert/load/DirAlertLoader.py
+# License:             BSD-3-Clause
+# Author:              valery brinnel <firstname.lastname@gmail.com>
+# Date:                14.12.2017
+# Last Modified Date:  27.07.2021
+# Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
-from typing import List, Optional, Union
 from io import BytesIO, StringIO
 from ampel.abstract.AbsAlertLoader import AbsAlertLoader
 
 
-class DirAlertLoader(AbsAlertLoader[Union[StringIO, BytesIO]]):
+class DirAlertLoader(AbsAlertLoader[StringIO | BytesIO]):
 	""" Load alerts from a (flat) directory. """
 
 	folder: str
 	extension: str
 	binary_mode: bool = True
-	min_index: Optional[int] = None
-	max_index: Optional[int] = None
-	max_entries: Optional[int] = None
+	min_index: None | int = None
+	max_index: None | int = None
+	max_entries: None | int = None
 
 
 	def __init__(self, **kwargs) -> None:
 		super().__init__(**kwargs)
-		self.files: List[str] = []
+		self.files: list[str] = []
 		self.open_mode = "rb" if self.binary_mode else "r"
 
 
@@ -92,7 +91,7 @@ class DirAlertLoader(AbsAlertLoader[Union[StringIO, BytesIO]]):
 		self.logger.debug(f"File list contains {len(self.files)} elements")
 
 
-	def __next__(self) -> Union[StringIO, BytesIO]:
+	def __next__(self) -> StringIO | BytesIO:
 
 		if not self.files:
 			self.build_file_list()

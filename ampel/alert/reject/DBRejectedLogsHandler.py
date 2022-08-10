@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : Ampel-alerts/ampel/logging/DBRejectedLogsHandler.py
-# License           : BSD-3-Clause
-# Author            : vb <vbrinnel@physik.hu-berlin.de>
-# Date              : 29.09.2018
-# Last Modified Date: 09.05.2020
-# Last Modified By  : vb <vbrinnel@physik.hu-berlin.de>
+# File:                Ampel-alerts/ampel/logging/DBRejectedLogsHandler.py
+# License:             BSD-3-Clause
+# Author:              valery brinnel <firstname.lastname@gmail.com>
+# Date:                29.09.2018
+# Last Modified Date:  09.05.2020
+# Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
 from time import time
 from logging import DEBUG, WARNING, LogRecord
-from typing import Dict, Any, List, Union, Optional
+from typing import Any
 from pymongo.errors import BulkWriteError
 from pymongo.operations import UpdateOne
 
@@ -35,9 +35,9 @@ class DBRejectedLogsHandler(ContextUnit):
 	single_rej_col: bool = False
 	aggregate_interval: int = 1
 	flush_len: int = 1000
-	log_dicts: List[Dict[str, Any]] = []
-	prev_record: Optional[Union[LightLogRecord, LogRecord]] = None
-	run_id: Optional[Union[int, List[int]]] = None
+	log_dicts: list[dict[str, Any]] = []
+	prev_record: None | LightLogRecord | LogRecord = None
+	run_id: None | int | list[int] = None
 
 
 	def __init__(self, **kwargs):
@@ -60,15 +60,15 @@ class DBRejectedLogsHandler(ContextUnit):
 		self.col = self.context.db.get_collection(col_name)
 
 
-	def set_run_id(self, run_id: Union[int, List[int]]) -> None:
+	def set_run_id(self, run_id: int | list[int]) -> None:
 		self.run_id = run_id
 
 
-	def get_run_id(self) -> Optional[Union[int, List[int]]]:
+	def get_run_id(self) -> None | int | list[int]:
 		return self.run_id
 
 
-	def handle(self, record: Union[LightLogRecord, LogRecord]) -> None:
+	def handle(self, record: LightLogRecord | LogRecord) -> None:
 
 		try:
 

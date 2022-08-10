@@ -1,11 +1,12 @@
-from typing import Any, Dict, List, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
+from ampel.model.ChannelModel import ChannelModel
 import pytest, yaml
 import contextlib
 
+from ampel.log.AmpelLogger import AmpelLogger
 from ampel.template.AbsEasyChannelTemplate import AbsEasyChannelTemplate
 
-if TYPE_CHECKING:
-    from ampel.log.AmpelLogger import AmpelLogger
+if TYPE_CHECKING:   
     from ampel.config.builder.FirstPassConfig import FirstPassConfig
 
 class LegacyChannelTemplate(AbsEasyChannelTemplate):
@@ -13,9 +14,9 @@ class LegacyChannelTemplate(AbsEasyChannelTemplate):
     # Mandatory implementation
     def get_processes(
         self, logger: "AmpelLogger", first_pass_config: "FirstPassConfig"
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
 
-        ret: List[Dict[str, Any]] = []
+        ret: list[dict[str, Any]] = []
 
         ret.insert(
             0,
@@ -155,3 +156,12 @@ def test_single_element_to_sequence(key):
     single = LegacyChannelTemplate(**(kwargs | {key: {"unit": "Nonesuch"}}))
     sequence = LegacyChannelTemplate(**(kwargs | {key: [{"unit": "Nonesuch"}]}))
     assert getattr(single, key) == getattr(sequence, key)
+
+def test_get_channel():
+    template = LegacyChannelTemplate(
+        channel = "FOO",
+        version = 0,
+        t0_filter = {"unit": "NoFilter"},
+    )
+    channel = template.get_channel(logger=AmpelLogger.get_logger())
+    assert ChannelModel(**channel).dict() == channel

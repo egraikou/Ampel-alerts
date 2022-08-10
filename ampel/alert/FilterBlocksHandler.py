@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : Ampel-alerts/ampel/alert/FilterBlocksHandler.py
-# License           : BSD-3-Clause
-# Author            : vb <vbrinnel@physik.hu-berlin.de>
-# Date              : 29.05.2020
-# Last Modified Date: 21.05.2021
-# Last Modified By  : vb <vbrinnel@physik.hu-berlin.de>
+# File:                Ampel-alerts/ampel/alert/FilterBlocksHandler.py
+# License:             BSD-3-Clause
+# Author:              valery brinnel <firstname.lastname@gmail.com>
+# Date:                29.05.2020
+# Last Modified Date:  21.05.2021
+# Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
-from typing import Sequence, Union
+from collections.abc import Sequence
 from ampel.alert.FilterBlock import FilterBlock
 from ampel.core.AmpelContext import AmpelContext
 from ampel.log.AmpelLogger import AmpelLogger
@@ -72,7 +72,7 @@ class FilterBlocksHandler:
 
 	def __init__(self,
 		context: AmpelContext, logger: AmpelLogger,
-		directives: Sequence[Union[IngestDirective, DualIngestDirective]],
+		directives: Sequence[IngestDirective | DualIngestDirective],
 		process_name: str,
 		db_log_format: str = "standard"
 	) -> None:
