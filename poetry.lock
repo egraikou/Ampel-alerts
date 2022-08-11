@@ -16,7 +16,7 @@ multidict = ">=4.5,<7.0"
 yarl = ">=1.0,<2.0"
 
 [package.extras]
-speedups = ["aiodns", "brotli", "cchardet"]
+speedups = ["cchardet", "brotli", "aiodns"]
 
 [[package]]
 name = "aiosignal"
@@ -39,18 +39,18 @@ python-versions = "*"
 
 [[package]]
 name = "ampel-core"
-version = "0.8.3a20"
+version = "0.8.3a21"
 description = "Alice in Modular Provenance-Enabled Land"
 category = "main"
 optional = false
 python-versions = ">=3.10,<3.11"
 
 [package.dependencies]
-ampel-interface = ">=0.8.3-alpha.15,<0.9.0"
+ampel-interface = ">=0.8.3-beta.1,<0.9.0"
 appdirs = ">=1.4.4,<2.0.0"
 prometheus-client = ">=0.10,<0.12"
 psutil = ">=5.8.0,<6.0.0"
-pydantic = "1.9.0"
+pydantic = ">=1.9.0,<2.0.0"
 pymongo = ">=4.0,<5.0"
 schedule = ">=1.0.0,<2.0.0"
 sjcl = ">=0.2.1,<0.3.0"
@@ -58,12 +58,12 @@ slackclient = ">=2.7,<3.0"
 yq = ">=2.12.0,<3.0.0"
 
 [package.extras]
-server = ["fastapi (>=0.63,<0.69)", "uvicorn[standard] (>=0.13.3,<0.16.0)"]
-docs = ["Sphinx (>=3.5.1,<5.0.0)", "sphinx-press-theme (>=0.5.1,<0.9.0)", "sphinx-autodoc-typehints (>=1.11.1,<2.0.0)", "tomlkit (>=0.7.0,<0.8.0)"]
+docs = ["tomlkit (>=0.7.0,<0.8.0)", "sphinx-autodoc-typehints (>=1.11.1,<2.0.0)", "sphinx-press-theme (>=0.5.1,<0.9.0)", "Sphinx (>=3.5.1,<5.0.0)"]
+server = ["uvicorn[standard] (>=0.13.3,<0.16.0)", "fastapi (>=0.63,<0.69)"]
 
 [[package]]
 name = "ampel-interface"
-version = "0.8.3a16"
+version = "0.8.3b1"
 description = "Base classes for the Ampel analysis platform"
 category = "main"
 optional = false
@@ -76,7 +76,7 @@ ujson = ">=5.1.0,<6.0.0"
 xxhash = ">=3.0.0,<4.0.0"
 
 [package.extras]
-docs = ["Sphinx (>=4.0.0,<5.0.0)", "sphinx-autodoc-typehints (>=1.11.1,<2.0.0)", "tomlkit (>=0.11.0,<0.12.0)"]
+docs = ["tomlkit (>=0.11.0,<0.12.0)", "sphinx-autodoc-typehints (>=1.11.1,<2.0.0)", "Sphinx (>=4.0.0,<5.0.0)"]
 
 [[package]]
 name = "appdirs"
@@ -122,10 +122,10 @@ optional = false
 python-versions = ">=3.5"
 
 [package.extras]
-dev = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "mypy (>=0.900,!=0.940)", "pytest-mypy-plugins", "zope.interface", "furo", "sphinx", "sphinx-notfound-page", "pre-commit", "cloudpickle"]
-docs = ["furo", "sphinx", "zope.interface", "sphinx-notfound-page"]
-tests = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "mypy (>=0.900,!=0.940)", "pytest-mypy-plugins", "zope.interface", "cloudpickle"]
-tests_no_zope = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "mypy (>=0.900,!=0.940)", "pytest-mypy-plugins", "cloudpickle"]
+tests_no_zope = ["cloudpickle", "pytest-mypy-plugins", "mypy (>=0.900,!=0.940)", "pytest (>=4.3.0)", "pympler", "hypothesis", "coverage[toml] (>=5.0.2)"]
+tests = ["cloudpickle", "zope.interface", "pytest-mypy-plugins", "mypy (>=0.900,!=0.940)", "pytest (>=4.3.0)", "pympler", "hypothesis", "coverage[toml] (>=5.0.2)"]
+docs = ["sphinx-notfound-page", "zope.interface", "sphinx", "furo"]
+dev = ["cloudpickle", "pre-commit", "sphinx-notfound-page", "sphinx", "furo", "zope.interface", "pytest-mypy-plugins", "mypy (>=0.900,!=0.940)", "pytest (>=4.3.0)", "pympler", "hypothesis", "coverage[toml] (>=5.0.2)"]
 
 [[package]]
 name = "babel"
@@ -329,7 +329,7 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
 [package.extras]
-test = ["ipaddress", "mock", "enum34", "pywin32", "wmi"]
+test = ["wmi", "pywin32", "enum34", "mock", "ipaddress"]
 
 [[package]]
 name = "py"
@@ -379,13 +379,13 @@ optional = false
 python-versions = ">=3.7"
 
 [package.extras]
-aws = ["pymongo-auth-aws (<2.0.0)"]
-encryption = ["pymongocrypt (>=1.3.0,<2.0.0)"]
-gssapi = ["pykerberos"]
-ocsp = ["pyopenssl (>=17.2.0)", "requests (<3.0.0)", "service-identity (>=18.1.0)", "certifi"]
-snappy = ["python-snappy"]
-srv = ["dnspython (>=1.16.0,<3.0.0)"]
 zstd = ["zstandard"]
+srv = ["dnspython (>=1.16.0,<3.0.0)"]
+snappy = ["python-snappy"]
+ocsp = ["certifi", "service-identity (>=18.1.0)", "requests (<3.0.0)", "pyopenssl (>=17.2.0)"]
+gssapi = ["pykerberos"]
+encryption = ["pymongocrypt (>=1.3.0,<2.0.0)"]
+aws = ["pymongo-auth-aws (<2.0.0)"]
 
 [[package]]
 name = "pyparsing"
@@ -396,7 +396,7 @@ optional = false
 python-versions = ">=3.6.8"
 
 [package.extras]
-diagrams = ["railroad-diagrams", "jinja2"]
+diagrams = ["jinja2", "railroad-diagrams"]
 
 [[package]]
 name = "pytest"
@@ -417,7 +417,7 @@ py = ">=1.8.2"
 tomli = ">=1.0.0"
 
 [package.extras]
-testing = ["argcomplete", "hypothesis (>=3.56)", "mock", "nose", "pygments (>=2.7.2)", "requests", "xmlschema"]
+testing = ["xmlschema", "requests", "pygments (>=2.7.2)", "nose", "mock", "hypothesis (>=3.56)", "argcomplete"]
 
 [[package]]
 name = "pytest-cov"
@@ -479,8 +479,8 @@ idna = ">=2.5,<4"
 urllib3 = ">=1.21.1,<1.27"
 
 [package.extras]
-socks = ["PySocks (>=1.5.6,!=1.5.7)"]
 use_chardet_on_py3 = ["chardet (>=3.0.2,<6)"]
+socks = ["PySocks (>=1.5.6,!=1.5.7)"]
 
 [[package]]
 name = "schedule"
@@ -558,9 +558,9 @@ sphinxcontrib-qthelp = "*"
 sphinxcontrib-serializinghtml = ">=1.1.5"
 
 [package.extras]
+test = ["typed-ast", "cython", "html5lib", "pytest (>=4.6)"]
+lint = ["types-requests", "types-typed-ast", "docutils-stubs", "sphinx-lint", "mypy (>=0.971)", "isort", "flake8-bugbear", "flake8-comprehensions", "flake8 (>=3.5.0)"]
 docs = ["sphinxcontrib-websupport"]
-lint = ["flake8 (>=3.5.0)", "flake8-comprehensions", "flake8-bugbear", "isort", "mypy (>=0.971)", "sphinx-lint", "docutils-stubs", "types-typed-ast", "types-requests"]
-test = ["pytest (>=4.6)", "html5lib", "cython", "typed-ast"]
 
 [[package]]
 name = "sphinx-autodoc-typehints"
@@ -697,9 +697,9 @@ optional = true
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*, <4"
 
 [package.extras]
-brotli = ["brotlicffi (>=0.8.0)", "brotli (>=1.0.9)", "brotlipy (>=0.6.0)"]
-secure = ["pyOpenSSL (>=0.14)", "cryptography (>=1.3.4)", "idna (>=2.0.0)", "certifi", "ipaddress"]
 socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
+secure = ["ipaddress", "certifi", "idna (>=2.0.0)", "cryptography (>=1.3.4)", "pyOpenSSL (>=0.14)"]
+brotli = ["brotlipy (>=0.6.0)", "brotli (>=1.0.9)", "brotlicffi (>=0.8.0)"]
 
 [[package]]
 name = "xmltodict"
@@ -753,7 +753,7 @@ server = []
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<3.11"
-content-hash = "02a837ae513ca9ab603753d94f6aea3d897f21a19d6496f4b57e9be2edfb3cbb"
+content-hash = "45051abce34929417d97ea2ca82f2b3af5d616069c804470a2e1a12a546b50e7"
 
 [metadata.files]
 aiohttp = [
@@ -839,12 +839,12 @@ alabaster = [
     {file = "alabaster-0.7.12.tar.gz", hash = "sha256:a661d72d58e6ea8a57f7a86e37d86716863ee5e92788398526d58b26a4e4dc02"},
 ]
 ampel-core = [
-    {file = "ampel-core-0.8.3a20.tar.gz", hash = "sha256:b885791aa865fb38f1b2cefb7790738d96c8d27c4b72fbe0c8526e32b2a33e4e"},
-    {file = "ampel_core-0.8.3a20-py3-none-any.whl", hash = "sha256:ed1cc3996bdc5e2e4017eb0bf58b0abc6eae7faf99b94df73b118736d20f2dcf"},
+    {file = "ampel-core-0.8.3a21.tar.gz", hash = "sha256:01533437205e417cb6df8f97d7cb835fb79dccb31dcbb5daa61d467b80eb275c"},
+    {file = "ampel_core-0.8.3a21-py3-none-any.whl", hash = "sha256:5569d5e4ad496e2d96a00577ef16575146a0e78cbf2156bb33a82493ef0f1c0a"},
 ]
 ampel-interface = [
-    {file = "ampel-interface-0.8.3a16.tar.gz", hash = "sha256:c6514527cb5da9a833e23176bd6ec04868cff62e62b9db5e5524ea3a24a5f513"},
-    {file = "ampel_interface-0.8.3a16-py3-none-any.whl", hash = "sha256:d8b6ed40d54a2286cda590ceb6c7205e282039732288edec40973224432a4ad8"},
+    {file = "ampel-interface-0.8.3b1.tar.gz", hash = "sha256:c757e1cc6579f9d9bd1dd92248959a2aed8c7102017b940ec5d65cb2dff98e05"},
+    {file = "ampel_interface-0.8.3b1-py3-none-any.whl", hash = "sha256:d983c909b9df4b11e25a4266fe56d569ce7847e474934e968aff9b45004f44dd"},
 ]
 appdirs = [
     {file = "appdirs-1.4.4-py2.py3-none-any.whl", hash = "sha256:a841dacd6b99318a741b166adb07e19ee71a274450e68237b4650ca1055ab128"},
