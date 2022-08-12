@@ -4,7 +4,7 @@
 # License:             BSD-3-Clause
 # Author:              valery brinnel <firstname.lastname@gmail.com>
 # Date:                10.10.2017
-# Last Modified Date:  25.07.2022
+# Last Modified Date:  12.08.2022
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
 import sys
@@ -288,6 +288,19 @@ class AlertConsumer(AbsEventUnit):
 		# Builds set of stock ids for autocomplete, if needed
 		self._fbh.ready(logger, run_id)
 
+		# Shortcuts
+		report_filter_error = lambda e, alert, fblock: self._report_ap_error(
+			e, event_hdlr, logger,
+			extra = {'a': alert.id, 'section': 'filter', 'c': fblock.channel}
+		)
+
+		report_ingest_error = lambda e, alert, filter_results: self._report_ap_error(
+			e, event_hdlr, logger, extra={
+				'a': alert.id, 'section': 'ingest',
+				'c': [self.directives[el[0]].channel for el in filter_results]
+			}
+		)
+
 		# Process alerts
 		################
 
@@ -316,6 +329,7 @@ class AlertConsumer(AbsEventUnit):
 
 					# Loop through filter blocks
 					for fblock in fblocks:
+
 						try:
 							# Apply filter (returns None/False in case of rejection or True/int in case of match)
 							res = fblock.filter(alert)
@@ -325,7 +339,7 @@ class AlertConsumer(AbsEventUnit):
 						# Unrecoverable (logging related) errors
 						except (PyMongoError, AmpelLoggingError) as e:
 							print("%s: abording run() procedure" % e.__class__.__name__)
-							self._report_ap_error(e, event_hdlr, logger, run_id, extra={'a': alert.id})
+							report_filter_error(e, alert, fblock)
 							raise e
 
 						# Possibly tolerable errors (could be an error from a contributed filter)
@@ -333,10 +347,8 @@ class AlertConsumer(AbsEventUnit):
 
 							if db_logging_handler:
 								fblock.forward(db_logging_handler, stock=stock_id, extra={'a': alert.id})
-							self._report_ap_error(
-								e, event_hdlr, logger, run_id,
-								extra={'a': alert.id, 'section': 'filter', 'c': fblock.channel}
-							)
+
+							report_filter_error(e, alert, fblock)
 
 							if self.raise_exc:
 								raise e
@@ -367,15 +379,11 @@ class AlertConsumer(AbsEventUnit):
 							)
 					except (PyMongoError, AmpelLoggingError) as e:
 						print("%s: abording run() procedure" % e.__class__.__name__)
-						self._report_ap_error(e, event_hdlr, logger, run_id, extra={'a': alert.id})
+						report_ingest_error(e, alert, filter_results)
 						raise e
 
 					except Exception as e:
-
-						self._report_ap_error(
-							e, event_hdlr, logger, run_id, filter_results,
-							extra={'a': alert.id, 'section': 'ingest'}
-						)
+						report_ingest_error(e, alert, filter_results)
 
 						if self.raise_exc:
 							raise e
@@ -465,9 +473,11 @@ class AlertConsumer(AbsEventUnit):
 		return iter_count
 
 
-	def _report_ap_error(self,
-		arg_e: Exception, event_hdlr, logger: AmpelLogger, run_id: int | list[int],
-		filter_results: None | list[tuple[int, bool | int]] = None,
+	@staticmethod
+	def _report_ap_error(
+		arg_e: Exception,
+		event_hdlr: EventHandler,
+		logger: AmpelLogger,
 		extra: None | dict[str, Any] = None
 	) -> None:
 		"""
@@ -475,18 +485,18 @@ class AlertConsumer(AbsEventUnit):
 		"""
 
 		event_hdlr.set_code(EventCode.EXCEPTION)
-		info: Any = {'process': self.process_name, 'run': run_id}
+		info: Any = {
+			'process': event_hdlr.process_name,
+			'run': event_hdlr.get_run_id()
+		}
 
 		if extra:
 			for k in extra.keys():
 				info[k] = extra[k]
 
-		if filter_results:
-			info['channel'] = [self.directives[el[0]].channel for el in filter_results]
-
 		# Try to insert doc into trouble collection (raises no exception)
 		# Possible exception will be logged out to console in any case
-		report_exception(self._ampel_db, logger, exc=arg_e, info=info)
+		report_exception(event_hdlr.db, logger, exc=arg_e, info=info)
 
 
 	@staticmethod
