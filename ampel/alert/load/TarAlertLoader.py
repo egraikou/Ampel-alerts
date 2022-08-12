@@ -11,6 +11,7 @@ import tarfile
 from gzip import GzipFile
 from typing import IO
 from ampel.log.AmpelLogger import AmpelLogger
+from ampel.types import Traceless
 from ampel.abstract.AbsAlertLoader import AbsAlertLoader
 
 
@@ -25,7 +26,7 @@ class TarAlertLoader(AbsAlertLoader[IO[bytes]]):
 	start: int = 0
 	file_obj: None | IO[bytes] | tarfile.ExFileObject
 	file_path: None | str
-	logger: AmpelLogger # actually optional
+	logger: Traceless[AmpelLogger] # actually optional
 
 
 	def __init__(self, **kwargs) -> None:

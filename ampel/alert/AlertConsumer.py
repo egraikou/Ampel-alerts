@@ -14,7 +14,7 @@ from collections.abc import Sequence
 from pymongo.errors import PyMongoError
 
 from ampel.core.AmpelContext import AmpelContext
-from ampel.util.mappings import merge_dict
+from ampel.util.mappings import get_by_path, merge_dict
 from ampel.util.freeze import recursive_unfreeze
 from ampel.enum.EventCode import EventCode
 from ampel.model.UnitModel import UnitModel
@@ -81,6 +81,9 @@ class AlertConsumer(AbsEventUnit):
 	#: no alert was processed (iter_count == 0)
 	exit_if_no_alert: None | int = None
 
+	#: Fields from alert.extra to include in journal entries, of the form
+	#: journal_key: dotted.path.in.extra.dict
+	include_alert_extra_with_keys: dict[str, str] = {}
 
 	@classmethod
 	def from_process(cls, context: AmpelContext, process_name: str, override: None | dict = None):
@@ -353,10 +356,14 @@ class AlertConsumer(AbsEventUnit):
 					stats["accepted"].inc()
 
 					try:
+						alert_extra: dict[str, Any] = {'alert': alert.id}
+						if self.include_alert_extra_with_keys and alert.extra:
+							for key, path in self.include_alert_extra_with_keys.items():
+								alert_extra[key] = get_by_path(alert.extra, path)
 						with stat_time.labels("ingest").time():
 							ing_hdlr.ingest(
 								alert.datapoints, filter_results, stock_id, alert.tag,
-								{'alert': alert.id}, alert.extra.get('stock') if alert.extra else None
+								alert_extra, alert.extra.get('stock') if alert.extra else None
 							)
 					except (PyMongoError, AmpelLoggingError) as e:
 						print("%s: abording run() procedure" % e.__class__.__name__)
@@ -424,6 +431,9 @@ class AlertConsumer(AbsEventUnit):
 		except Exception as e:
 			event_hdlr.handle_error(e, logger)
 
+			if self.raise_exc:
+				raise e
+
 		# Also executed after SIGINT and SIGTERM
 		finally:
 
@@ -445,6 +455,8 @@ class AlertConsumer(AbsEventUnit):
 
 			except Exception as e:
 				event_hdlr.handle_error(e, logger)
+				if self.raise_exc:
+					raise e
 
 		if self.exit_if_no_alert and iter_count == 0:
 			sys.exit(self.exit_if_no_alert)
