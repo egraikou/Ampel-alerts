@@ -10,7 +10,6 @@
 import sys
 from signal import signal, SIGINT, SIGTERM, default_int_handler
 from typing import Any
-from collections.abc import Sequence
 from pymongo.errors import PyMongoError
 
 from ampel.core.AmpelContext import AmpelContext
@@ -32,12 +31,11 @@ from ampel.log.AmpelLoggingError import AmpelLoggingError
 from ampel.log.LightLogRecord import LightLogRecord
 from ampel.alert.AlertConsumerError import AlertConsumerError
 from ampel.alert.AlertConsumerMetrics import stat_alerts, stat_accepted, stat_time
-from ampel.model.ingest.IngestDirective import IngestDirective
-from ampel.model.ingest.DualIngestDirective import DualIngestDirective
 from ampel.model.ingest.CompilerOptions import CompilerOptions
+from ampel.model.AlertConsumerModel import AlertConsumerModel
 
 
-class AlertConsumer(AbsEventUnit):
+class AlertConsumer(AbsEventUnit, AlertConsumerModel):
 	"""
 	Class handling the processing of alerts (T0 level).
 	For each alert, following tasks are performed:
@@ -47,43 +45,9 @@ class AlertConsumer(AbsEventUnit):
 	* Ingest alert based on the configured ingester
 	"""
 
-	# General options
-	#: Maximum number of alerts to consume in :func:`run`
-	iter_max: int = 50000
-
-	#: Maximum number of exceptions to catch before cancelling :func:`run`
-	error_max: int = 20
-
-	#: Mandatory T0 unit
-	shaper: UnitModel
-
-	#: Mandatory alert processor directives. This parameter will
-	#: determines how the underlying :class:`~ampel.alert.FilterBlocksHandler.FilterBlocksHandler`
-	#: and :class:`~ampel.alert.ChainedIngestionHandler.ChainedIngestionHandler` instances are set up.
-	directives: Sequence[IngestDirective | DualIngestDirective]
-
-	#: How to store log record in the database (see :class:`~ampel.alert.FilterBlocksHandler.FilterBlocksHandler`)
-	db_log_format: str = "standard"
-
-	#: Unit to use to supply alerts (str is just a shortcut for a configless UnitModel(unit=str))
-	supplier: UnitModel
-
-	compiler_opts: None | CompilerOptions
-
-	database: str = "mongo"
-
 	#: Flag to use for log records with a level between INFO and WARN
 	shout: int = LogFlag.SHOUT
 
-	updates_buffer_size: int = 500
-
-	#: Calls `sys.exit()` with `exit_if_no_alert` as return code in case
-	#: no alert was processed (iter_count == 0)
-	exit_if_no_alert: None | int = None
-
-	#: Fields from alert.extra to include in journal entries, of the form
-	#: journal_key: dotted.path.in.extra.dict
-	include_alert_extra_with_keys: dict[str, str] = {}
 
 	@classmethod
 	def from_process(cls, context: AmpelContext, process_name: str, override: None | dict = None):
@@ -268,7 +232,7 @@ class AlertConsumer(AbsEventUnit):
 
 		# Loop variables
 		iter_max = self.iter_max
-		if self.iter_max != self.__class__.iter_max:
+		if self.iter_max != self._defaults['iter_max']:
 			logger.info(f"Using custom iter_max: {self.iter_max}")
 
 		self._cancel_run = 0
