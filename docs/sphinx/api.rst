@@ -44,6 +44,9 @@ Alert loading
 .. autoclass:: ampel.alert.load.DirAlertLoader.DirAlertLoader
   :members:
 
+.. autoclass:: ampel.alert.load.WiseFileAlertLoader.WiseFileAlertLoader
+   :members:
+
 Rejected alerts handling
 ------------------------
 
