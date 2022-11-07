@@ -10,7 +10,9 @@
 from io import BytesIO
 from typing import List
 from ampel.abstract.AbsAlertLoader import AbsAlertLoader
+import gzip
 import json
+from pathlib import Path
 
 class WiseFileAlertLoader(AbsAlertLoader[BytesIO]):
     """
@@ -30,9 +32,12 @@ class WiseFileAlertLoader(AbsAlertLoader[BytesIO]):
         if self.logger:
             self.logger.info(f"Registering {len(self.file)} file(s) to load")
 
-        self.lc = json.loads(open(self.file, "r").read() ) 
-        self.lc_content = iter(self.lc.items())
-
+        if Path(self.file).suffix == '.json':
+            self.lc = json.loads(open(self.file, "r").read() ) 
+            self.lc_content = iter(self.lc.items())
+        elif Path(self.file).suffix == '.gz':
+            self.lc = json.loads(gzip.open(self.file, "r").read() )
+            self.lc_content = iter(self.lc.items())
 
     def __iter__(self):
         return self
