@@ -28,6 +28,7 @@ def identity(arg: dict) -> dict:
 	return arg
 
 
+# mypy: disable-error-code=empty-body
 class BaseAlertSupplier(AbsAlertSupplier, abstract=True):
 	"""
 	:param deserialize: if the alert_loader returns bytes/file_like objects,

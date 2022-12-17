@@ -37,7 +37,7 @@ class DirAlertLoader(AbsAlertLoader[StringIO | BytesIO]):
 		self.logger.debug("Target incoming folder: " + self.folder)
 
 
-	def set_index_range(self, min_index: int = None, max_index: int = None) -> None:
+	def set_index_range(self, min_index: None | int = None, max_index: None | int = None) -> None:
 		self.min_index = min_index
 		self.max_index = max_index
 		self.logger.debug(f"Min index set to: {self.min_index}")
