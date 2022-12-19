@@ -7,7 +7,6 @@
 # Last Modified Date:  24.11.2021
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
-from typing import List
 from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
 from ampel.abstract.AbsAlertSupplier import AbsAlertSupplier
 
