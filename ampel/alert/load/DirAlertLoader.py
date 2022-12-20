@@ -4,7 +4,7 @@
 # License:             BSD-3-Clause
 # Author:              valery brinnel <firstname.lastname@gmail.com>
 # Date:                14.12.2017
-# Last Modified Date:  27.07.2021
+# Last Modified Date:  19.12.2022
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
 from io import BytesIO, StringIO
@@ -37,7 +37,7 @@ class DirAlertLoader(AbsAlertLoader[StringIO | BytesIO]):
 		self.logger.debug("Target incoming folder: " + self.folder)
 
 
-	def set_index_range(self, min_index: int = None, max_index: int = None) -> None:
+	def set_index_range(self, min_index: None | int = None, max_index: None | int = None) -> None:
 		self.min_index = min_index
 		self.max_index = max_index
 		self.logger.debug(f"Min index set to: {self.min_index}")
@@ -61,7 +61,7 @@ class DirAlertLoader(AbsAlertLoader[StringIO | BytesIO]):
 		import glob, os
 		all_files = sorted(
 			glob.glob(
-				os.path.join(self.folder, self.extension)
+				os.path.join(self.folder, "*." + self.extension)
 			),
 			key=os.path.getmtime
 		)

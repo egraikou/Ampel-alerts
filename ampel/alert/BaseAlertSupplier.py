@@ -4,7 +4,7 @@
 # License:             BSD-3-Clause
 # Author:              valery brinnel <firstname.lastname@gmail.com>
 # Date:                29.07.2021
-# Last Modified Date:  24.11.2021
+# Last Modified Date:  19.12.2022
 # Last Modified By:    valery brinnel <firstname.lastname@gmail.com>
 
 import json
@@ -18,6 +18,7 @@ from ampel.base.decorator import abstractmethod
 from ampel.base.AuxUnitRegister import AuxUnitRegister
 from ampel.abstract.AbsAlertLoader import AbsAlertLoader
 from ampel.model.UnitModel import UnitModel
+from ampel.struct.Resource import Resource
 
 
 def identity(arg: dict) -> dict:
@@ -28,6 +29,7 @@ def identity(arg: dict) -> dict:
 	return arg
 
 
+# mypy: disable-error-code=empty-body
 class BaseAlertSupplier(AbsAlertSupplier, abstract=True):
 	"""
 	:param deserialize: if the alert_loader returns bytes/file_like objects,
@@ -90,3 +92,7 @@ class BaseAlertSupplier(AbsAlertSupplier, abstract=True):
 	def set_logger(self, logger: AmpelLogger) -> None:
 		self.logger = logger
 		self.alert_loader.set_logger(logger)
+
+	def add_resource(self, name: str, value: Resource) -> None:
+		super().add_resource(name, value)
+		self.alert_loader.add_resource(name, value)

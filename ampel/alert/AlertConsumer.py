@@ -199,6 +199,10 @@ class AlertConsumer(AbsEventUnit, AlertConsumerModel):
 
 		self.alert_supplier.set_logger(logger)
 
+		if event_hdlr.resources:
+			for k, v in event_hdlr.resources.items():
+				self.alert_supplier.add_resource(k, v)
+
 		if logger.verbose:
 			logger.log(VERBOSE, "Pre-run setup")
 

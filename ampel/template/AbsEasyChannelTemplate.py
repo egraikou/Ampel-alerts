@@ -60,7 +60,7 @@ class AbsEasyChannelTemplate(AbsChannelTemplate, abstract=True):
 		shaper: str | dict[str, Any],
 		combiner: str | dict[str, Any],
 		muxer: None | str | dict[str, Any] = None,
-		compiler_opts: None | dict[str, Any] = None
+		compiler_opts: None | str | dict[str, Any] = None
 	) -> dict[str, Any]:
 		"""
 		This method needs a reference to a FirstPassConfig dict because
@@ -107,7 +107,7 @@ class AbsEasyChannelTemplate(AbsChannelTemplate, abstract=True):
 		combiner: str | dict[str, Any],
 		filter_dict: None | dict[str, Any] = None,
 		muxer: None | str | dict[str, Any] = None,
-		compiler_opts: None | dict[str, Any] = None
+		compiler_opts: None | str | dict[str, Any] = None
 	) -> dict[str, Any]:
 		"""
 		This method needs a reference to a FirstPassConfig dict because

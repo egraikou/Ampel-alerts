@@ -19,7 +19,7 @@ package_data = {
 
 setup(
     name = 'ampel-alerts',
-    version = '0.8.3.beta-1',
+    version = '0.8.3.beta-3',
     description = 'Alice in Modular Provenance-Enabled Land',
     author = 'Valery Brinnel',
     maintainer = 'Jakob van Santen',
